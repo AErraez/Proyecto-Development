@@ -1,0 +1,5 @@
+outs:
+- md5: ead1a995a408831b1a863a756b64d72f
+  size: 6765138
+  hash: md5
+  path: transfers.csv

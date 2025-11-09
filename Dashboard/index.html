@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buscador de valor de traspaso</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="./style.css" rel="stylesheet">
+</head>
+<body>
+
+  <div class="container py-4">
+    <h2 class="title text-center mb-4">⚽ Buscador de Valor de Traspaso</h2>
+
+    <!-- 🔍 Search bar -->
+    <div class="search-bar mb-5 d-flex flex-wrap justify-content-center align-items-center gap-3 position-relative">
+      <div class="position-relative">
+        <label class="form-label">Jugador:</label>
+        <input id="playerInput" class="form-control" placeholder="Ej: Moisés Caicedo" autocomplete="off" style="width: 250px;">
+        <ul id="suggestions" class="px-0"></ul>
+      </div>
+      <div>
+        <label for="season" class="form-label">Temporada:</label>
+        <select name="season" id="seasonInput" class="form-select" style="width: 150px;">
+          <option value=2021>2020-2021</option>
+          <option value=2022>2021-2022</option>
+          <option value=2023>2022-2023</option>
+          <option value=2024>2023-2024</option>
+          <option value=2025 selected>2024-2025</option>
+        </select>
+      </div>
+      <button id="searchBtn" class="btn btn-success">Buscar</button>
+    </div>
+
+    <!-- 🧩 Info cards -->
+    <div class="row g-4 justify-content-center">
+
+      <!-- Datos personales -->
+      <div class="col-md-4">
+        <div class="card-custom">
+          <h4>Datos personales</h4>
+          <hr>
+          <p id="name">Nombre:</p>
+          <p id="nationality">Nacionalidad:</p>
+          <p id="birthYear">Edad:</p>
+          <p id="position">Posición:</p>
+          <p id="club">Club:</p>
+          <p id="league">Liga:</p>
+        </div>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="col-md-4">
+        <div class="card-custom" id="stats_card">
+          <h4>Estadísticas</h4>
+          <hr>
+          <p id="matches">Partidos:</p>
+          <p id="passAccuracy">% de Pases completados:</p>
+          <p id="interceptions">Intercepciones:</p>
+          <p id="duelsWon">Duelos ganados:</p>
+          <p id="progressive">Posesiones progresivas:</p>
+          <p id="assists">Asistencias:</p>
+        </div>
+      </div>
+
+      <!-- Valor de traspaso -->
+<div class="col-md-3 text-center d-flex flex-column align-items-center">
+  
+  <!-- Player portrait (standalone) -->
+  <img id="playerPhoto"
+       src=""
+       alt="Foto del jugador"
+       class="player-photo mb-4 shadow"
+       style="display: none;">
+  
+  <!-- Transfer value box -->
+  <div class="transfer-box text-center">
+    <h5>Valor de traspaso estimado</h5>
+    <h2 id="transferValue">€ -</h2>
+  </div>
+  
+</div>
+
+
+    </div>
+
+<!-- 📊 DASHBOARD SECTION -->
+<div class="container mt-5 mb-5 dashboard-section">
+  <h2 class="text-center mb-4">📈 Dashboard</h2>
+
+  <!-- 🔽 Global Controls -->
+  <div class="dashboard-controls mb-4 d-flex flex-wrap justify-content-center align-items-center gap-4">
+    <div>
+      <label class="form-label">Temporada:</label>
+      <select id="seasonFilter" class="form-select" style="width: 150px;">
+        <option value="2021">2020-2021</option>
+        <option value="2022">2021-2022</option>
+        <option value="2023">2022-2023</option>
+        <option value="2024">2023-2024</option>
+        <option value="2025" selected>2024-2025</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="form-label">Posición:</label>
+      <select id="positionFilter" class="form-select" style="width: 160px;">
+        <option value="All">Todas</option>
+        <option value="FW">Delantero</option>
+        <option value="MF">Mediocampista</option>
+        <option value="DF">Defensa</option>
+        <option value="GK">Portero</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="form-label">Rango de valor (€ millones):</label><br>
+      <input type="range" id="minRange" min="0" max="200" step="1" value="0" style="width:120px;">
+      <input type="range" id="maxRange" min="0" max="200" step="1" value="200" style="width:120px;">
+      <span id="rangeValue" class="ms-2 fw-bold text-light">€ 0 – € 200M</span>
+    </div>
+
+  </div>
+
+  <!-- 📊 Individual Graphs -->
+  <div class="row justify-content-center g-4">
+
+
+<!-- Scatter Plot -->
+<div class="col-md-6 text-center">
+  <div class="dashboard-variable">
+    <label class="form-label">Variable (eje X):</label>
+    <select id="xVariable" class="form-select">
+      <option value="Ast">Asistencias</option>
+      <option value="Gls">Goles</option>
+      <option value="Tkl">Entradas</option>
+      <option value="Cmp%">Precisión de pase (%)</option>
+      <option value="KP">Pases clave</option>
+      <option value="PrgC">Controles progresivos</option>
+      <option value="Touches">Pases</option>
+      <option value="MP">Partidos jugados</option>
+    </select>
+  </div>
+  <svg id="scatterPlot" width="100%" height="400"></svg>
+</div>
+
+<!-- Pie Chart -->
+<div class="col-md-5 text-center">
+  <div class="dashboard-variable">
+    <label class="form-label">Variable (Distribución):</label>
+    <select id="pieVariable" class="form-select">
+      <option value="Nation">Nacionalidad</option>
+      <option value="Squad">Club</option>
+      <option value="Pos">Posición</option>
+    </select>
+  </div>
+  <svg id="pieChart" width="100%" height="400"></svg>
+</div>
+
+
+  </div>
+</div>
+
+  </div>
+
+  <footer class="text-center mt-4">
+    © 2025 | Proyecto de Análisis de Traspasos — Demo UI
+  </footer>
+
+  <script src="./search.js" type="module"></script>
+  <!-- Tooltip -->
+<div id="tooltip" class="tooltip"></div>
+
+</body>
+</html>

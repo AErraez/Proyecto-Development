@@ -1,0 +1,208 @@
+
+body {
+    background: #242e36;
+    color: #ecf0f1;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.title {
+    text-align: center;
+    margin: 2rem 0;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.search-bar {
+    background-color: #2c3e50;
+    border-radius: 15px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 1px solid #27ae60;
+    background-color: #1b2838;
+    color: #ecf0f1;
+    margin-right: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #27ae60;
+}
+
+.form-select {
+    border-radius: 10px;
+    border: 1px solid #27ae60;
+    background-color: #1b2838;
+    color: #ecf0f1;
+    margin-right: 1rem;
+}
+
+.form-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #27ae60;
+}
+
+.btn-success {
+    border-radius: 10px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 500;
+    transition: 0.2s;
+}
+.btn-success:hover {
+    background-color: #2ecc71;
+    transform: scale(1.03);
+}
+
+.card-custom {
+    background-color: #1b2838;
+    border-radius: 20px;
+    color: #ecf0f1;
+    padding: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border-top: 3px solid #27ae60;
+    transition: transform 0.2s ease;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+}
+
+.transfer-box {
+    background-color: #1b2838;
+    border-radius: 20px;
+    color: #27ae60;
+    text-align: center;
+    padding: 2rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border-top: 3px solid #27ae60;
+}
+
+/* Dropdown style */
+#suggestions {
+    position: absolute;
+    background-color: #1b2838;
+    border: 1px solid #27ae60;
+    border-radius: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    width: 260px;
+    z-index: 1000;
+    margin-top: 4px;
+    display: none;
+}
+#suggestions li {
+    padding: 10px;
+    cursor: pointer;
+    color: white;
+    list-style: none;
+    transition: background-color 0.2s;
+}
+#suggestions li:hover {
+    background-color: #27ae60;
+    color: white;
+}
+
+footer {
+    text-align: center;
+    color: #95a5a6;
+    margin-top: auto;
+    padding: 1rem 0;
+    font-size: 0.9rem;
+}
+
+.player-photo {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%; /* perfect circle */
+  border: 3px solid #27ae60;
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: transform 0.3s ease;
+}
+
+.player-photo:hover {
+  transform: scale(1.05);
+}
+
+.transfer-box {
+  background: #1b4f72;
+  color: white;
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+
+.dashboard-section {
+  background-color: #2c3e50;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.dashboard-controls label {
+  color: #ecf0f1;
+  font-weight: 500;
+}
+
+svg {
+  background: #1b2838;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+#minRange, #maxRange {
+  accent-color: #27ae60;
+}
+#positionFilter, #xVariable, #pieVariable {
+  background-color: #1f2937;
+  color: white;
+  border: none;
+}
+
+
+/* Center variable selectors above each chart */
+.dashboard-variable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dashboard-variable label {
+  text-align: center;
+  margin-bottom: 0.3rem;
+  color: #ecf0f1;
+}
+
+.dashboard-variable select {
+  text-align: center;
+  width: 200px;
+}
+
+.tooltip {
+  position: absolute;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}

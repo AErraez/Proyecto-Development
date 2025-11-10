@@ -1,0 +1,442 @@
+let playerData = [];
+// persistent selection state so it survives re-renders
+let currentSelected = { name: null, season: null };
+
+
+fetch('players.json')
+  .then(res => res.json())
+  .then(data => playerData = data)
+  .catch(err => console.error("Error loading JSON:", err));
+
+const playerInput = document.getElementById('playerInput');
+const seasonInput = document.getElementById('seasonInput');
+const suggestions = document.getElementById('suggestions');
+
+// 🟢 Auto-suggestion logic (unchanged)
+playerInput.addEventListener('input', () => {
+  const query = playerInput.value.trim().toLowerCase();
+  const season = seasonInput.value.trim();
+  suggestions.innerHTML = '';
+
+  if (query.length < 3) {
+    suggestions.style.display = 'none';
+    return;
+  }
+
+  // Filter by name + season
+  const filtered = playerData
+    .filter(p =>
+      p.player_name &&
+      p.player_name.toLowerCase().includes(query) &&
+      (!p.transfer_season || p.transfer_season.includes(season))
+    )
+    .map(p => p.player_name);
+
+  const uniqueNames = [...new Set(filtered)].slice(0, 10);
+
+  if (uniqueNames.length === 0) {
+    suggestions.style.display = 'none';
+    return;
+  }
+
+  uniqueNames.forEach(name => {
+    const li = document.createElement('li');
+    li.textContent = name;
+    li.addEventListener('click', () => {
+      playerInput.value = name;
+      suggestions.style.display = 'none';
+    });
+    suggestions.appendChild(li);
+  });
+
+  suggestions.style.display = 'block';
+});
+
+document.addEventListener('click', (e) => {
+  if (!playerInput.contains(e.target) && !suggestions.contains(e.target)) {
+    suggestions.style.display = 'none';
+  }
+});
+
+// 🟢 Main search button
+// 🟢 Main search button
+document.getElementById('searchBtn').addEventListener('click', () => {
+  const name = playerInput.value.trim().toUpperCase();
+  const season = parseInt(seasonInput.value);
+
+  if (!name || !season) {
+    alert("Por favor ingresa el nombre del jugador y la temporada.");
+    return;
+  }
+
+  const player = playerData.find(
+    p =>
+      p.player_name &&
+      p.player_name.toUpperCase() === name &&
+      (!p.season_year || p.season_year == season)
+  );
+
+  if (!player) {
+    alert("Jugador no encontrado para esa temporada.");
+    return;
+  }
+
+  // 🧩 Datos personales
+  document.getElementById('name').innerText = `Nombre: ${player.player_name}`;
+  document.getElementById('nationality').innerText = `Nacionalidad: ${player.Nation}`;
+  document.getElementById('birthYear').innerText = `Edad: ${player.Age}`;
+  document.getElementById('position').innerText = `Posición: ${player.Pos}`;
+  document.getElementById('club').innerText = `Club: ${player.Squad}`;
+  document.getElementById('league').innerText = `Liga: ${player.Comp}`;
+
+  // 🧠 Limpiar y rellenar estadísticas dinámicamente
+  const statsBox = document.getElementById('stats_card');
+  statsBox.innerHTML = '<h4>Estadísticas</h4><hr>'; // reset header
+
+  const pos = (player.Pos || '');
+  let statsHTML = '';
+
+  if (pos=='FW') {
+    // 🟥 Forward
+    statsHTML = `
+      <p>Partidos: ${player.MP}</p>
+      <p>Goles: ${player.Gls || 0}</p>
+      <p>Asistencias: ${player.Ast || 0}</p>
+      <p>Goles sin considerar penales: ${player['G-PK'] || 0}</p>
+      <p>Goles Esperados: ${player.xG || 0}</p>
+      <p>Pases clave: ${player.KP || 0}</p>
+    `;
+  } else if (pos == 'MF') {
+    // 🟩 Midfielder
+    statsHTML = `
+      <p>Partidos: ${player.MP}</p>
+      <p>% de Pases completados: ${player["Cmp%"] || 0}%</p>
+      <p>Asistencias: ${player.Ast || 0}</p>
+      <p>Intercepciones: ${player.Int || 0}</p>
+      <p>Duelos ganados: ${player.TklW || 0}</p>
+      <p>Posesiones progresivas: ${player.PrgR || 0}</p>
+    `;
+  } else if (pos == 'DF') {
+    // 🟦 Defender
+    statsHTML = `
+      <p>Partidos: ${player.MP}</p>
+      <p>Duelos ganados: ${player.TklW || 0}</p>
+      <p>Intercepciones: ${player.Int || 0}</p>
+      <p>Despejes: ${player.Clr || 0}</p>
+      <p>Errores resultantes en gol: ${player.Err || 0}</p>
+      <p>% de Pases completados: ${player["Cmp%"] || 0}%</p>
+    `;
+  } else if (pos == 'GK') {
+    // 🟨 Goalkeeper
+    statsHTML = `
+      <p>Partidos: ${player.MP}</p>
+      <p>Goles encajados: ${player.GA || 0}</p>
+      <p>Atajadas: ${player.Saves || 0}</p>
+      <p>% de Atajadas: ${player["Save%"] || 0}%</p>
+      <p>Porterías a cero: ${player.CS || 0}</p>
+      <p>Penales atajados: ${player.PKsv || 0}</p>
+    `;
+  } else {
+    // default fallback
+    statsHTML = `
+      <p>Partidos: ${player.MP}</p>
+      <p>% de Pases completados: ${player["Cmp%"] || 0}%</p>
+      <p>Asistencias: ${player.Ast || 0}</p>
+    `;
+  }
+
+  statsBox.innerHTML += statsHTML;
+
+  // 🖼️ Foto
+  const photo = document.getElementById('playerPhoto');
+  if (player.image_url) {
+    photo.src = player.image_url;
+  } else {
+    photo.src = 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
+  }
+  photo.style.display = 'block';
+
+  // 💰 Valor de traspaso
+  const value = player.prediccion ? player.prediccion.toFixed(2) : 0;
+  document.getElementById('transferValue').innerText = `€ ${value} millones`;
+
+  // Highlight the current player in the scatter plot
+  currentSelected.name = player.player_name;
+  currentSelected.season = player.season_year;
+
+  // Now update charts (this will call updateScatter which reads currentSelected)
+  updateAllCharts();
+
+});
+
+
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+// Function to create/update scatter plot
+// Function to create/update scatter plot
+function updateScatter(data, xVar) {
+  const svg = d3.select("#scatterPlot");
+  svg.selectAll("*").remove();
+
+  const width = +svg.attr("width") || svg.node().clientWidth;
+  const height = +svg.attr("height") || svg.node().clientHeight;
+  const margin = { top: 30, right: 30, bottom: 50, left: 60 };
+
+  const x = d3.scaleLinear()
+    .domain(d3.extent(data, d => +d[xVar])).nice()
+    .range([margin.left, width - margin.right]);
+
+  const y = d3.scaleLinear()
+    .domain(d3.extent(data, d => +d.prediccion)).nice()
+    .range([height - margin.bottom, margin.top]);
+
+  svg.append("g")
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x));
+
+  svg.append("g")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y));
+
+  const tooltip = d3.select("#tooltip");
+
+  // helper to test equality (name + season) to avoid collisions across seasons
+  function isSelected(d) {
+    return d.player_name === currentSelected.name;
+  }
+
+  const circles = svg.selectAll("circle")
+    .data(data)
+    .join("circle")
+    .attr("cx", d => x(+d[xVar]))
+    .attr("cy", d => y(+d.prediccion))
+    .attr("r", d => isSelected(d) ? 9 : 6)
+    .attr("fill", d => isSelected(d) ? "#27ae60" : "#3498db")
+    .attr("opacity", d => isSelected(d) ? 1 : 0.8)
+    .style("cursor", "pointer")
+    .on("mouseover", function (event, d) {
+      // If it's the currently selected - we may still enlarge slightly but DO NOT change fill
+      if (isSelected(d)) {
+        d3.select(this)
+          .transition().duration(100)
+          .attr("r", 10); // slight hover increase but keep the green fill
+      } else {
+        d3.select(this)
+          .transition().duration(100)
+          .attr("r", 9)
+          .attr("fill", "#27ae60"); // temporary highlight on hover
+      }
+
+      tooltip.transition().duration(150).style("opacity", 1);
+      tooltip.html(`
+        <strong>${d.player_name}</strong><br>
+        ${xVar}: ${d[xVar]}<br>
+        Valor Estimado: € ${(+d.prediccion).toFixed(2)} M
+      `);
+    })
+    .on("mousemove", function (event) {
+      tooltip
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", function (event, d) {
+      // Restore appearance based on whether this is the selected one
+      if (isSelected(d)) {
+        d3.select(this)
+          .transition().duration(100)
+          .attr("r", 9)
+          .attr("fill", "#27ae60")
+          .attr("opacity", 1);
+      } else {
+        d3.select(this)
+          .transition().duration(100)
+          .attr("r", 6)
+          .attr("fill", "#3498db")
+          .attr("opacity", 0.8);
+      }
+      tooltip.transition().duration(150).style("opacity", 0);
+    })
+    .on("click", function (event, d) {
+      // 1) Persist selection BEFORE re-rendering or triggering search
+      currentSelected.name = d.player_name;
+
+      // 2) Update search inputs
+      playerInput.value = d.player_name;
+      seasonInput.value = d.season_year;
+      suggestions.style.display = 'none';
+      // 3) Recolor current circles immediately (user feedback)
+      circles
+        .attr("fill", d2 => (d2.player_name === currentSelected.name) ? "#27ae60" : "#3498db")
+        .attr("opacity", d2 => (d2.player_name === currentSelected.name) ? 1 : 0.8)
+        .attr("r", d2 => (d2.player_name === currentSelected.name) ? 9 : 6);
+
+      // 4) Trigger search action that updates details & may re-render charts
+      // Because currentSelected is set, updateScatter will keep the highlight after re-render.
+      document.getElementById("searchBtn").click();
+    });
+    if (currentSelected.name) {
+  circles
+    .filter(d => d.player_name === currentSelected.name)
+    .raise();
+}
+}
+
+
+
+
+
+// Function to create/update pie chart
+function updatePie(data, pieVar) {
+  const svg = d3.select("#pieChart");
+  svg.selectAll("*").remove();
+
+  const width = +svg.attr("width") || svg.node().clientWidth;
+  const height = +svg.attr("height") || svg.node().clientHeight;
+  const radius = Math.min(width, height) / 2 - 40;
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${width / 2},${height / 2})`);
+
+  const color = d3.scaleOrdinal(d3.schemeObservable10);
+
+  const counts = d3.rollups(data, v => v.length, d => d[pieVar]);
+  const pie = d3.pie().value(d => d[1]);
+  const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+  const tooltip = d3.select("#tooltip");
+
+  g.selectAll("path")
+    .data(pie(counts))
+    .join("path")
+    .attr("d", arc)
+    .attr("fill", d => color(d.data[0]))
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 2)
+    .on("mouseover", function (event, d) {
+      d3.select(this)
+        .transition().duration(150)
+        .attr("transform", "scale(1.05)");
+
+      tooltip.transition().duration(150).style("opacity", 1);
+      tooltip.html(`
+        <strong>${pieVar}:</strong> ${d.data[0]}<br>
+        <strong>Jugadores:</strong> ${d.data[1]}
+      `);
+    })
+    .on("mousemove", function (event) {
+      tooltip
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", function () {
+      d3.select(this)
+        .transition().duration(150)
+        .attr("transform", "scale(1)");
+
+      tooltip.transition().duration(150).style("opacity", 0);
+    });
+}
+
+// 🎚️ Position and Value Range Filters
+// 🎚️ Dashboard Filters
+const positionFilter = document.getElementById("positionFilter");
+const seasonFilter = document.getElementById("seasonFilter");
+const minRange = document.getElementById("minRange");
+const maxRange = document.getElementById("maxRange");
+const rangeValue = document.getElementById("rangeValue");
+const xVariable = document.getElementById("xVariable");
+const pieVariable = document.getElementById("pieVariable");
+
+// 🟢 Update displayed range
+function updateRangeLabel() {
+  const min = +minRange.value;
+  const max = +maxRange.value;
+  rangeValue.textContent = `€ ${min}M – € ${max}M`;
+}
+
+// 🟢 Get filtered dataset
+function getFilteredData() {
+  const pos = positionFilter.value;
+  const minVal = +minRange.value;
+  const maxVal = +maxRange.value;
+  const season = seasonFilter.value;
+
+  return playerData.filter(p => {
+    const val = +p.prediccion || 0;
+    const matchesPos = (pos === "All" || p.Pos === pos);
+    const matchesSeason = (season === "All" || p.season_year == season);
+    return matchesPos && matchesSeason && val >= minVal && val <= maxVal;
+  });
+}
+
+
+
+// 🟢 Unified chart update
+function updateAllCharts() {
+  const filteredData = getFilteredData();
+  const xVar = xVariable.value;
+  const pieVar = pieVariable.value;
+
+  if (filteredData.length > 0) {
+    updateScatter(filteredData, xVar);
+    updatePie(filteredData, pieVar);
+
+  } else {
+    d3.select("#scatterPlot").selectAll("*").remove();
+    d3.select("#pieChart").selectAll("*").remove();
+  }
+}
+
+// 🔄 Automatically update when any filter changes
+[positionFilter, seasonFilter, minRange, maxRange, xVariable, pieVariable]
+  .forEach(el => el.addEventListener("input", () => {
+    updateRangeLabel();
+    if (el === positionFilter) updateVariableOptions(); // 🧩 update variable list when GK selected
+    updateAllCharts();
+  }));
+
+// Initialize range label and first draw
+updateRangeLabel();
+setTimeout(updateAllCharts, 500);
+
+// ⚽ Field player and Goalkeeper variable sets
+const fieldPlayerVars = [
+  { value: "Ast", label: "Asistencias" },
+  { value: "Gls", label: "Goles" },
+  { value: "Tkl", label: "Entradas" },
+  { value: "Cmp%", label: "Precisión de pase (%)" },
+  { value: "KP", label: "Pases clave" },
+  { value: "PrgC", label: "Controles progresivos" },
+  { value: "Touches", label: "Pases" },
+  { value: "MP", label: "Partidos jugados" }
+];
+
+const goalkeeperVars = [
+  { value: "GA", label: "Goles concedidos" },
+  { value: "CS", label: "Porterías a cero" },
+  { value: "Save%", label: "Porcentaje de atajadas (%)" },
+  { value: "PKsv", label: "Penales atajados" },
+  { value: "MP", label: "Partidos jugados" }
+];
+
+
+// 🧠 Update the X-variable dropdown based on position
+function updateVariableOptions() {
+  const pos = positionFilter.value;
+  const select = document.getElementById("xVariable");
+
+  // Determine which variable list to use
+  const vars = pos === "GK" ? goalkeeperVars : fieldPlayerVars;
+
+  // Clear current options
+  select.innerHTML = "";
+
+  // Add new options
+  vars.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v.value;
+    opt.textContent = v.label;
+    select.appendChild(opt);
+  });
+}
+updateVariableOptions();

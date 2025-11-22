@@ -17,11 +17,10 @@ api/player-val-api/**/*.egg-info/
 api/player-val-api/.DS_Store
 api/player-val-api/Thumbs.db
 
-# Ignore all wheel files EXCEPT your model wheel
-api/player-val-api/model-pkg/*.whl
+# Ignore all wheel files EXCEPT your model wheel 
 
 # Logs
-api/player-val-api/*.log
+api/player-val-api/*.log 
 api/player-val-api/logs/
 
 

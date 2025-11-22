@@ -1,0 +1,27 @@
+# Virtual environment
+api/player-val-api/venv/
+
+# Python cache
+api/player-val-api/__pycache__/
+api/player-val-api/**/*.pyc
+api/player-val-api/**/*.pyo
+api/player-val-api/**/*.pyd
+
+# Build artifacts
+api/player-val-api/build/
+api/player-val-api/dist/
+api/player-val-api/*.egg-info/
+api/player-val-api/**/*.egg-info/
+
+# OS junk files
+api/player-val-api/.DS_Store
+api/player-val-api/Thumbs.db
+
+# Ignore all wheel files EXCEPT your model wheel
+api/player-val-api/model-pkg/*.whl
+
+# Logs
+api/player-val-api/*.log
+api/player-val-api/logs/
+
+

@@ -440,3 +440,165 @@ function updateVariableOptions() {
   });
 }
 updateVariableOptions();
+
+const playerInput2 = document.getElementById('playerInput2');
+const seasonInput2 = document.getElementById('seasonInput2');
+const suggestions2 = document.getElementById('suggestions2');
+
+// 🟢 Auto-suggestion logic (unchanged)
+playerInput2.addEventListener('input', () => {
+  const query = playerInput2.value.trim().toLowerCase();
+  const season = seasonInput2.value.trim();
+  suggestions2.innerHTML = '';
+
+  if (query.length < 3) {
+    suggestions2.style.display = 'none';
+    return;
+  }
+
+  // Filter by name + season
+  const filtered = playerData
+    .filter(p =>
+      p.player_name &&
+      p.player_name.toLowerCase().includes(query) &&
+      (!p.transfer_season || p.transfer_season.includes(season))
+    )
+    .map(p => p.player_name);
+
+  const uniqueNames = [...new Set(filtered)].slice(0, 10);
+
+  if (uniqueNames.length === 0) {
+    suggestions2.style.display = 'none';
+    return;
+  }
+
+  uniqueNames.forEach(name => {
+    const li = document.createElement('li');
+    li.textContent = name;
+    li.addEventListener('click', () => {
+      playerInput2.value = name;
+      suggestions2.style.display = 'none';
+    });
+    suggestions2.appendChild(li);
+  });
+
+  suggestions2.style.display = 'block';
+});
+
+document.addEventListener('click', (e) => {
+  if (!playerInput2.contains(e.target) && !suggestions2.contains(e.target)) {
+    suggestions2.style.display = 'none';
+  }
+});
+
+
+// ==========================
+//   PREDICTOR DE VALOR
+// ==========================
+
+const predictorSection = document.getElementById("predictorSection");
+const predictFields = document.getElementById("predictFields");
+const predictBtn = document.getElementById("predictBtn");
+const predictionResult = document.getElementById("predictionResult");
+
+document.getElementById("importBtn").addEventListener("click", () => {
+  const playerName = document.getElementById("playerInput2").value.trim().toUpperCase();
+  const season = parseInt(document.getElementById("seasonInput2").value);
+
+  if (!playerName) {
+    alert("Ingresa un nombre de jugador válido.");
+    return;
+  }
+
+  const player = playerData.find(
+    p => p.player_name.toUpperCase().includes(playerName) && p.season_year === season
+  );
+
+  if (!player) {
+    alert("Jugador no encontrado en esa temporada.");
+    return;
+  }
+
+  // Definir SOLO los campos requeridos por la API
+  const fields = {
+    "market_value_in_eur": player.market_value_in_eur || 0,
+    "Squad": player.Squad || "",
+    "KP": player.KP || 0,
+    "Carries": player.Carries || 0,
+    "G+A": player["G+A"] || 0,
+    "Touches": player.Touches || 0,
+    "Comp_eng Premier League": player.Comp === "eng Premier League",
+    "Age": player.Age || 0,
+    "npxG": player.npxG || 0,
+    "MP": player.MP || 0,
+    "Ast": player.Ast || 0,
+    "xG": player.xG || 0,
+    "Starts": player.Starts || 0,
+    "PrgC": player.PrgC || 0,
+    "Nation": player.Nation || "",
+    "Dis": player.Dis || 0,
+    "Min": player.Min || 0,
+    "G-PK": player["G-PK"] || 0,
+    "90s": player["90s"] || 0,
+    "Gls": player.Gls || 0,
+    "Tkl+Int": player["Tkl+Int"] || 0,
+    "xAG": player.xAG || 0,
+    "TklW": player.TklW || 0,
+    "PrgP": player.PrgP || 0,
+    "Recov": player.Recov || 0,
+    "PKwon": player.PKwon || 0,
+    "Cmp%": player["Cmp%"] || 0,
+    "Int": player.Int || 0,
+    "CrdR": player.CrdR || 0,
+    "PPA": player.PPA || 0,
+    "Comp_fr Ligue 1": player.Comp === "fr Ligue 1",
+    "CS%": player["CS%"] || 0,
+    "Pos_GK": player.Pos === "GK",
+    "GA": player.GA || 0,
+    "Comp_it Serie A": player.Comp === "it Serie A",
+    "PrgR": player.PrgR || 0
+  };
+
+  // RENDERIZAR CAMPOS EN EL FORM
+  predictFields.innerHTML = "";
+
+  Object.entries(fields).forEach(([key, value]) => {
+    const isBool = typeof value === "boolean";
+
+    predictFields.innerHTML += `
+      <div class="col-md-4">
+        <label class="predict-label">${key}</label>
+        <input type="${isBool ? "checkbox" : "number"}" 
+               id="field_${key.replace(/[^a-zA-Z0-9]/g, "_")}"
+               class="form-control"
+               ${isBool ? (value ? "checked" : "") : `value="${value}"`} >
+      </div>`;
+  });
+
+  predictorSection.style.display = "block";
+});
+
+
+// ==========================
+//    ENVIAR PREDICCIÓN
+// ==========================
+predictBtn.addEventListener("click", async () => {
+  const formValues = {};
+
+  [...predictFields.querySelectorAll("input")].forEach(input => {
+    const key = input.id.replace("field_", "").replace(/_/g, match => match === "_" ? " " : match);
+
+    formValues[key] = input.type === "checkbox" ? input.checked : Number(input.value);
+  });
+
+  const body = { inputs: [formValues] };
+  console.log("Enviando datos para predicción:", body);
+  const res = await fetch("http://44.197.203.122:8001/api/v1/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  const data = await res.json();
+  predictionResult.innerHTML = `Valor predicho: <b>€${data.prediction?.toFixed(2)}</b>`;
+});

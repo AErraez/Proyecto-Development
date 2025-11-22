@@ -160,6 +160,45 @@
   </div>
 </div>
 
+    <h2 class="title text-center mb-4">🔍 Predictor de valor</h2>
+    <!-- 🔍 Search bar -->
+    <div class="search-bar mb-5 d-flex flex-wrap justify-content-center align-items-center gap-3 position-relative">
+      <div class="position-relative">
+        <label class="form-label">Jugador:</label>
+        <input id="playerInput2" class="form-control" placeholder="Ej: Moisés Caicedo" autocomplete="off" style="width: 250px;">
+        <ul id="suggestions2" class="px-0"></ul>
+      </div>
+      <div>
+        <label for="season" class="form-label">Temporada:</label>
+        <select name="season" id="seasonInput2" class="form-select" style="width: 150px;">
+          <option value=2021>2020-2021</option>
+          <option value=2022>2021-2022</option>
+          <option value=2023>2022-2023</option>
+          <option value=2024>2023-2024</option>
+          <option value=2025 selected>2024-2025</option>
+        </select>
+      </div>
+      <button id="importBtn" class="btn btn-success">Importar datos</button>
+    </div>
+<!-- FORMULARIO DE PREDICCIÓN -->
+<div id="predictorSection" class="container mt-4" style="display:none;">
+  <h3 class="text-center mb-3">Editar valores del jugador</h3>
+
+  <form id="predictForm" class="row g-3">
+
+    <!-- Campos dinámicos se insertarán aquí -->
+    <div id="predictFields" class="row g-3"></div>
+
+    <div class="col-12 text-center mt-4">
+      <button type="button" id="predictBtn" class="btn btn-primary btn-lg">
+        Predecir valor
+      </button>
+    </div>
+
+    <h4 class="text-center mt-4" id="predictionResult"></h4>
+  </form>
+</div>
+
   </div>
 
   <footer class="text-center mt-4">

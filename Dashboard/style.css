@@ -114,6 +114,31 @@ body {
     color: white;
 }
 
+#suggestions2 {
+    position: absolute;
+    background-color: #1b2838;
+    border: 1px solid #27ae60;
+    border-radius: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    width: 260px;
+    z-index: 1000;
+    margin-top: 4px;
+    display: none;
+}
+#suggestions2 li {
+    padding: 10px;
+    cursor: pointer;
+    color: white;
+    list-style: none;
+    transition: background-color 0.2s;
+}
+#suggestions2 li:hover {
+    background-color: #27ae60;
+    color: white;
+}
+
+
 footer {
     text-align: center;
     color: #95a5a6;

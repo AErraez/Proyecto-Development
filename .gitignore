@@ -17,7 +17,7 @@ api/player-val-api/**/*.egg-info/
 api/player-val-api/.DS_Store
 api/player-val-api/Thumbs.db
 
-# Ignore all wheel files EXCEPT your model wheel
+# Ignore all wheel files EXCEPT your model wheel 
 
 # Logs
 api/player-val-api/*.log 

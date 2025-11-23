@@ -765,7 +765,7 @@ predictBtn.addEventListener("click", async () => {
     console.log("FINAL SEND:", payload);
 
     // Enviar a la API
-    const res = await fetch("http://localhost:8001/api/v1/predict", {
+    const res = await fetch("/api/v1/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -728,7 +728,7 @@ predictorSection.style.display = "block";
 // ==========================
 //    ENVIAR PREDICCIÓN
 // ==========================
-const API_URL = `http://${window.location.hostname}:8081/api/v1/predict`;
+const API_URL = `http://${window.location.hostname}:8001/api/v1/predict`;
 predictBtn.addEventListener("click", async () => {
 
     const bodyObject = {};

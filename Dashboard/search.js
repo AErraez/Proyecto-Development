@@ -499,6 +499,43 @@ document.addEventListener('click', (e) => {
 //   PREDICTOR DE VALOR
 // ==========================
 
+// ==========================
+//   CATEGORIZACIÓN VISUAL
+// ==========================
+const FIELD_GROUPS = {
+    "Información Personal": {
+        icon: "⚽",
+        fields: ["Age", "Nation", "Squad", "market_value_in_eur", "Pos", "League"]
+    },
+
+    "Ofensiva": {
+        icon: "🎯",
+        fields: ["Gls", "Ast", "G+A", "xG", "xAG", "G-PK", "PKwon", "PPA"]
+    },
+
+    "Creación / Construcción": {
+        icon: "🧠",
+        fields: ["KP", "Touches", "PrgP", "PrgC", "PrgR", "Carries", "Cmp%"]
+    },
+
+    "Defensa": {
+        icon: "🛡",
+        fields: ["Tkl+Int", "TklW", "Int", "Recov", "Dis"]
+    },
+
+    "Portero": {
+        icon: "🧤",
+        fields: ["CS%", "GA"]
+    },
+
+    "Volumen de juego": {
+        icon: "🔁",
+        fields: ["MP", "Starts", "Min", "90s"]
+    }
+};
+
+
+
 const FIELD_MAP = {
     "market_value_in_eur": "market_value_in_eur",
     "Squad": "Squad",
@@ -668,57 +705,110 @@ document.getElementById("importBtn").addEventListener("click", () => {
   };
 
   // RENDERIZAR CAMPOS EN EL FORM
-predictFields.innerHTML = "";
-
-// ========== SELECT DINÁMICO DE LIGA ==========
-predictFields.innerHTML += `
-    <div class="col-md-4">
-        <label class="predict-label">Liga</label>
-        <select id="field_League" class="form-control">
-            ${ALL_LEAGUES.map(l => `
-                <option value="${l}" ${player.Comp === l ? "selected" : ""}>
-                    ${l}
-                </option>
-            `).join("")}
-        </select>
-    </div>
+predictFields.innerHTML = `
+    <div class="accordion" id="predictAccordion"></div>
 `;
 
-// ========== SELECT DINÁMICO DE POSICIÓN ==========
-predictFields.innerHTML += `
-    <div class="col-md-4">
-        <label class="predict-label">Posición</label>
-        <select id="field_Pos" class="form-control">
-            ${ALL_POSITIONS.map(pos => `
-                <option value="${pos}" ${player.Pos === pos ? "selected" : ""}>
-                    ${pos}
-                </option>
-            `).join("")}
-        </select>
-    </div>
-`;
+const accordion = document.getElementById("predictAccordion");
 
-// ========== RENDERIZAR EL RESTO DE CAMPOS ==========
-Object.entries(FIELD_MAP).forEach(([jsonKey, trueKey]) => {
-    if (SKIP_FIELDS.includes(jsonKey)) return;
-    if (jsonKey === "Comp" || jsonKey === "Pos") return; // ya renderizados
+let groupIndex = 0;
 
-    const rawValue = player[jsonKey];
-    const isBool = typeof rawValue === "boolean";
-    const isText = typeof rawValue === "string";
+Object.entries(FIELD_GROUPS).forEach(([groupName, config]) => {
 
-    predictFields.innerHTML += `
-        <div class="col-md-4">
-            <label class="predict-label">${LABEL_MAP[jsonKey] || jsonKey}</label>
-            <input
-                id="field_${jsonKey}"
-                class="form-control"
-                type="${isBool ? "checkbox" : (isText ? "text" : "number")}"
-                ${isBool ? (rawValue ? "checked" : "") : `value="${rawValue}"`}
-            >
+    const collapseId = "collapse_" + groupIndex;
+    const headingId = "heading_" + groupIndex;
+
+    let cardHTML = `
+        <div class="accordion-item mb-3">
+            <h2 class="accordion-header" id="${headingId}">
+                <button class="accordion-button ${groupIndex !== 0 ? "collapsed" : ""}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#${collapseId}"
+                    aria-expanded="${groupIndex === 0 ? "true" : "false"}"
+                    aria-controls="${collapseId}">
+                    
+                    <span style="font-size: 1.4rem; margin-right: 10px;">${config.icon}</span>
+                    <strong>${groupName}</strong>
+                </button>
+            </h2>
+
+            <div id="${collapseId}"
+                class="accordion-collapse collapse ${groupIndex === 0 ? "show" : ""}"
+                aria-labelledby="${headingId}"
+                data-bs-parent="#predictAccordion">
+
+                <div class="accordion-body">
+                    <div class="row">
+    `;
+
+    // ---------------------
+    //   CAMPOS DEL GRUPO
+    // ---------------------
+    config.fields.forEach(jsonKey => {
+
+        // LIGA
+        if (jsonKey === "League") {
+            cardHTML += `
+                <div class="col-md-4 mb-3">
+                    <label class="predict-label">Liga</label>
+                    <select id="field_League" class="form-control">
+                        ${ALL_LEAGUES.map(l => `
+                            <option value="${l}" ${player.Comp === l ? "selected" : ""}>${l}</option>
+                        `).join("")}
+                    </select>
+                </div>
+            `;
+            return;
+        }
+
+        // POSICIÓN
+        if (jsonKey === "Pos") {
+            cardHTML += `
+                <div class="col-md-4 mb-3">
+                    <label class="predict-label">Posición</label>
+                    <select id="field_Pos" class="form-control">
+                        ${ALL_POSITIONS.map(pos => `
+                            <option value="${pos}" ${player.Pos === pos ? "selected" : ""}>${pos}</option>
+                        `).join("")}
+                    </select>
+                </div>
+            `;
+            return;
+        }
+
+        // CAMPOS NORMALES
+        if (!FIELD_MAP[jsonKey]) return;
+        if (SKIP_FIELDS.includes(jsonKey)) return;
+
+        const rawValue = player[jsonKey];
+        const isBool = typeof rawValue === "boolean";
+        const isText = typeof rawValue === "string";
+
+        cardHTML += `
+            <div class="col-md-4 mb-3">
+                <label class="predict-label">${LABEL_MAP[jsonKey] || jsonKey}</label>
+                <input
+                    id="field_${jsonKey}"
+                    class="form-control"
+                    type="${isBool ? "checkbox" : (isText ? "text" : "number")}"
+                    ${isBool ? (rawValue ? "checked" : "") : `value="${rawValue ?? 0}"`}
+                >
+            </div>
+        `;
+    });
+
+    cardHTML += `
+                    </div>
+                </div>
+            </div>
         </div>
     `;
+
+    accordion.innerHTML += cardHTML;
+    groupIndex++;
 });
+
 
 
 predictorSection.style.display = "block";

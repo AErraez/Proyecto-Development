@@ -5,7 +5,10 @@ let currentSelected = { name: null, season: null };
 
 fetch('players.json')
   .then(res => res.json())
-  .then(data => playerData = data)
+  .then(data => {
+    playerData = data;
+    initPredictForm()
+  })
   .catch(err => console.error("Error loading JSON:", err));
 
 const playerInput = document.getElementById('playerInput');
@@ -496,10 +499,113 @@ document.addEventListener('click', (e) => {
 //   PREDICTOR DE VALOR
 // ==========================
 
+const FIELD_MAP = {
+    "market_value_in_eur": "market_value_in_eur",
+    "Squad": "Squad",
+    "KP": "KP",
+    "Carries": "Carries",
+    "G+A": "G+A",
+    "Touches": "Touches",
+    "Comp_eng Premier League": "Comp_eng Premier League",
+    "Age": "Age",
+    "npxG": "npxG",
+    "MP": "MP",
+    "Ast": "Ast",
+    "xG": "xG",
+    "Starts": "Starts",
+    "PrgC": "PrgC",
+    "Nation": "Nation",
+    "Dis": "Dis",
+    "Min": "Min",
+    "G-PK": "G-PK",
+    "90s": "90s",
+    "Gls": "Gls",
+    "Tkl+Int": "Tkl+Int",
+    "xAG": "xAG",
+    "TklW": "TklW",
+    "PrgP": "PrgP",
+    "Recov": "Recov",
+    "PKwon": "PKwon",
+    "Cmp%": "Cmp%",
+    "Int": "Int",
+    "CrdR": "CrdR",
+    "PPA": "PPA",
+    "Comp_fr Ligue 1": "Comp_fr Ligue 1",
+    "CS%": "CS%",
+    "Pos_GK": "Pos_GK",
+    "GA": "GA",
+    "Comp_it Serie A": "Comp_it Serie A",
+    "PrgR": "PrgR"
+};
+
+
 const predictorSection = document.getElementById("predictorSection");
 const predictFields = document.getElementById("predictFields");
 const predictBtn = document.getElementById("predictBtn");
 const predictionResult = document.getElementById("predictionResult");
+const LABEL_MAP = {
+    "market_value_in_eur": "Valor de mercado en Transfermarkt (€)",
+    "Squad": "Equipo",
+    "KP": "Pases clave",
+    "Carries": "Conducciones",
+    "G+A": "Goles + Asistencias",
+    "Touches": "Pases",
+    "Age": "Edad",
+    "npxG": "xG sin penales",
+    "MP": "Partidos jugados",
+    "Ast": "Asistencias",
+    "xG": "Goles esperados (xG)",
+    "Starts": "Partidos como titular",
+    "PrgC": "Conducciones progresivas",
+    "Nation": "Nacionalidad",
+    "Dis": "Pérdidas de balón",
+    "Min": "Minutos jugados",
+    "G-PK": "Goles (sin penales)",
+    "90s": "Intervalos de 90 min",
+    "Gls": "Goles",
+    "Tkl+Int": "Entradas + Intercepciones",
+    "xAG": "Asistencias esperadas (xAG)",
+    "TklW": "Entradas ganadas",
+    "PrgP": "Pases progresivos",
+    "Recov": "Recuperaciones",
+    "PKwon": "Penales ganados",
+    "Cmp%": "Precisión de pase (%)",
+    "Int": "Intercepciones",
+    "CrdR": "Tarjetas rojas",
+    "PPA": "Pases al área de penal",
+    "CS%": "Porcentaje de porterías a cero",
+    "GA": "Goles concedidos",
+    "PrgR": "Carreras progresivas",
+
+    // Estos casi no se muestran pero los dejo traducidos:
+    "Comp_eng Premier League": "¿Premier League?",
+    "Comp_fr Ligue 1": "¿Ligue 1?",
+    "Comp_it Serie A": "¿Serie A?",
+    "Pos_GK": "¿Es portero?"
+};
+
+  // Obtener ligas únicas del JSON
+
+
+// Obtener posiciones únicas
+var ALL_POSITIONS
+var ALL_LEAGUES
+function initPredictForm() {
+    ALL_LEAGUES = [...new Set(playerData.map(p => p.Comp).filter(Boolean))];
+    console.log(ALL_LEAGUES);
+    ALL_POSITIONS = [...new Set(playerData.map(p => p.Pos).filter(Boolean))];
+    console.log(ALL_POSITIONS);
+
+}
+
+
+// Campos especiales que NO deben renderizarse como inputs
+const SKIP_FIELDS = [
+    "Comp_eng Premier League",
+    "Comp_fr Ligue 1",
+    "Comp_it Serie A",
+    "Pos_GK"
+];
 
 document.getElementById("importBtn").addEventListener("click", () => {
   const playerName = document.getElementById("playerInput2").value.trim().toUpperCase();
@@ -518,6 +624,8 @@ document.getElementById("importBtn").addEventListener("click", () => {
     alert("Jugador no encontrado en esa temporada.");
     return;
   }
+
+
 
   // Definir SOLO los campos requeridos por la API
   const fields = {
@@ -560,45 +668,111 @@ document.getElementById("importBtn").addEventListener("click", () => {
   };
 
   // RENDERIZAR CAMPOS EN EL FORM
-  predictFields.innerHTML = "";
+predictFields.innerHTML = "";
 
-  Object.entries(fields).forEach(([key, value]) => {
-    const isBool = typeof value === "boolean";
+// ========== SELECT DINÁMICO DE LIGA ==========
+predictFields.innerHTML += `
+    <div class="col-md-4">
+        <label class="predict-label">Liga</label>
+        <select id="field_League" class="form-control">
+            ${ALL_LEAGUES.map(l => `
+                <option value="${l}" ${player.Comp === l ? "selected" : ""}>
+                    ${l}
+                </option>
+            `).join("")}
+        </select>
+    </div>
+`;
+
+// ========== SELECT DINÁMICO DE POSICIÓN ==========
+predictFields.innerHTML += `
+    <div class="col-md-4">
+        <label class="predict-label">Posición</label>
+        <select id="field_Pos" class="form-control">
+            ${ALL_POSITIONS.map(pos => `
+                <option value="${pos}" ${player.Pos === pos ? "selected" : ""}>
+                    ${pos}
+                </option>
+            `).join("")}
+        </select>
+    </div>
+`;
+
+// ========== RENDERIZAR EL RESTO DE CAMPOS ==========
+Object.entries(FIELD_MAP).forEach(([jsonKey, trueKey]) => {
+    if (SKIP_FIELDS.includes(jsonKey)) return;
+    if (jsonKey === "Comp" || jsonKey === "Pos") return; // ya renderizados
+
+    const rawValue = player[jsonKey];
+    const isBool = typeof rawValue === "boolean";
+    const isText = typeof rawValue === "string";
 
     predictFields.innerHTML += `
-      <div class="col-md-4">
-        <label class="predict-label">${key}</label>
-        <input type="${isBool ? "checkbox" : "number"}" 
-               id="field_${key.replace(/[^a-zA-Z0-9]/g, "_")}"
-               class="form-control"
-               ${isBool ? (value ? "checked" : "") : `value="${value}"`} >
-      </div>`;
-  });
-
-  predictorSection.style.display = "block";
+        <div class="col-md-4">
+            <label class="predict-label">${LABEL_MAP[jsonKey] || jsonKey}</label>
+            <input
+                id="field_${jsonKey}"
+                class="form-control"
+                type="${isBool ? "checkbox" : (isText ? "text" : "number")}"
+                ${isBool ? (rawValue ? "checked" : "") : `value="${rawValue}"`}
+            >
+        </div>
+    `;
 });
+
+
+predictorSection.style.display = "block";
+})
 
 
 // ==========================
 //    ENVIAR PREDICCIÓN
 // ==========================
 predictBtn.addEventListener("click", async () => {
-  const formValues = {};
 
-  [...predictFields.querySelectorAll("input")].forEach(input => {
-    const key = input.id.replace("field_", "").replace(/_/g, match => match === "_" ? " " : match);
+    const bodyObject = {};
 
-    formValues[key] = input.type === "checkbox" ? input.checked : Number(input.value);
-  });
+    // 1) PROCESAR INPUTS NORMALES
+    Object.keys(FIELD_MAP).forEach((jsonKey) => {
+        if (SKIP_FIELDS.includes(jsonKey)) return;
+        if (jsonKey === "Comp" || jsonKey === "Pos") return;
 
-  const body = { inputs: [formValues] };
-  console.log("Enviando datos para predicción:", body);
-  const res = await fetch("http://44.197.203.122:8001/api/v1/predict", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
+        const element = document.getElementById(`field_${jsonKey}`);
+        if (!element) return;
 
-  const data = await res.json();
-  predictionResult.innerHTML = `Valor predicho: <b>€${data.prediction?.toFixed(2)}</b>`;
+        if (element.type === "checkbox") {
+            bodyObject[jsonKey] = element.checked;
+        } else {
+            const value = element.value;
+            bodyObject[jsonKey] = isNaN(value) ? value : Number(value);
+        }
+    });
+
+    // ============= LIGA (3 BOOLEANS) =============
+    const selectedLeague = document.getElementById("field_League").value;
+
+    bodyObject["Comp_eng Premier League"] = selectedLeague === "eng Premier League";
+    bodyObject["Comp_fr Ligue 1"] = selectedLeague === "fr Ligue 1";
+    bodyObject["Comp_it Serie A"] = selectedLeague === "it Serie A";
+
+    // ============= POSICIÓN (solo booleano GK) =============
+    const selectedPos = document.getElementById("field_Pos").value;
+    bodyObject["Pos_GK"] = (selectedPos === "GK");
+
+    // Construir payload final
+    const payload = { inputs: [bodyObject] };
+
+    console.log("FINAL SEND:", payload);
+
+    // Enviar a la API
+    const res = await fetch("http://44.197.203.122:8001/api/v1/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    predictionResult.innerHTML =
+        `Valor de mercado predicho: €${json.predictions[0].toFixed(2)} millones`;
 });
+

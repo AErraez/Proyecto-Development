@@ -231,3 +231,15 @@ svg {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
+
+#predictorSection input, 
+#predictorSection select {
+    background: #1a2329;
+    color: white;
+    border: 1px solid #3f4a52;
+}
+
+.predict-label {
+    font-weight: 600;
+    margin-bottom: 4px;
+}

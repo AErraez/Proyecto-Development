@@ -510,7 +510,7 @@ const FIELD_GROUPS = {
 
     "Ofensiva": {
         icon: "🎯",
-        fields: ["Gls", "Ast", "G+A", "xG", "xAG", "G-PK", "PKwon", "PPA"]
+        fields: ["Gls", "Ast", "G+A", "xG", "xAG", "G-PK", "PKwon", "PPA","npxG"]
     },
 
     "Creación / Construcción": {
@@ -530,7 +530,7 @@ const FIELD_GROUPS = {
 
     "Volumen de juego": {
         icon: "🔁",
-        fields: ["MP", "Starts", "Min", "90s"]
+        fields: ["MP", "Starts", "Min", "90s", "CrdR"]
     }
 };
 

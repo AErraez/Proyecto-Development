@@ -728,6 +728,7 @@ predictorSection.style.display = "block";
 // ==========================
 //    ENVIAR PREDICCIÓN
 // ==========================
+const API_URL = `http://${window.location.hostname}:8081/api/v1/predict`;
 predictBtn.addEventListener("click", async () => {
 
     const bodyObject = {};
@@ -765,7 +766,7 @@ predictBtn.addEventListener("click", async () => {
     console.log("FINAL SEND:", payload);
 
     // Enviar a la API
-    const res = await fetch("/api/v1/predict", {
+    const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
